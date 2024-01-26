@@ -1,21 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>SAFE</RootNamespace>
         <Authors>Isaac Abraham</Authors>
         <Copyright>Copyright (c) 2024 Compositional IT</Copyright>
-        <PackageId>SAFE.Client</PackageId>
         <PackageVersion>5.0.0</PackageVersion>
+        <TargetFramework>net8.0</TargetFramework>
+        <PackageId>SAFE.Client</PackageId>
         <DefineConstants>FABLE_COMPILER</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../../RELEASE-NOTES.txt"))</PackageReleaseNotes>
+        <PackageProjectUrl>https://github.com/SAFE-Stack/SAFE.Meta</PackageProjectUrl>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>safe-logo.png</PackageIcon>
+        <RepositoryUrl>https://github.com/SAFE-Stack/SAFE.Meta.git</RepositoryUrl>
         <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../../readme.md" Pack="true" PackagePath="" />
+        <None Include="../../LICENSE" Pack="true" PackagePath="" />
+        <None Include="../../safe-logo.png" Pack="true" PackagePath="" />
+    </ItemGroup>
 
     <ItemGroup>
         <Compile Include="SAFE.fs" />
         <Content Include="*.fsproj; **\*.fs; **\*.fsi" PackagePath="fable\" />
     </ItemGroup>
-    <Import Project="..\..\.paket\Paket.Restore.targets" />
 
+    <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

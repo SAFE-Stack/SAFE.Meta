@@ -7,13 +7,28 @@
         <Copyright>Copyright (c) 2024 Compositional IT</Copyright>
         <PackageId>SAFE.Server</PackageId>
         <PackageVersion>5.0.0</PackageVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../../RELEASE-NOTES.txt"))</PackageReleaseNotes>
+        <PackageProjectUrl>https://github.com/SAFE-Stack/SAFE.Meta</PackageProjectUrl>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>safe-logo.png</PackageIcon>
+        <RepositoryUrl>https://github.com/SAFE-Stack/SAFE.Meta.git</RepositoryUrl>
         <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="../../readme.md" Pack="true" PackagePath="" />
+        <None Include="../../LICENSE" Pack="true" PackagePath="" />
+        <None Include="../../safe-logo.png" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Compile Include="SAFE.fs" />
     </ItemGroup>
-    <Import Project="..\..\.paket\Paket.Restore.targets" />
 
+    <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
