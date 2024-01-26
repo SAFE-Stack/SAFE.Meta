@@ -1,0 +1,1 @@
+Contains dependencies required for the SAFE Stack server component, as well as a set of helper types and utilities.

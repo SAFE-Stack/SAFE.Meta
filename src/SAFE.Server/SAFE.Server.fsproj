@@ -14,14 +14,14 @@
         <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../../RELEASE-NOTES.txt"))</PackageReleaseNotes>
         <PackageProjectUrl>https://github.com/SAFE-Stack/SAFE.Meta</PackageProjectUrl>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
         <PackageIcon>safe-logo.png</PackageIcon>
         <RepositoryUrl>https://github.com/SAFE-Stack/SAFE.Meta.git</RepositoryUrl>
         <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../../readme.md" Pack="true" PackagePath="" />
+        <None Include="readme.md" Pack="true" PackagePath="" />
         <None Include="../../LICENSE" Pack="true" PackagePath="" />
         <None Include="../../safe-logo.png" Pack="true" PackagePath="" />
     </ItemGroup>
