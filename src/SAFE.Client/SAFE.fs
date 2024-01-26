@@ -14,16 +14,9 @@ type Api =
         |> Remoting.buildProxy<'TApi>
 
 /// An asynchronous message which should either be Started, or has Finished. Used commonly with the Elmish server request / response pattern.
-type AsyncMsg<'a, 't> =
-    | Start of 'a
-    | Finished of 't
-
-/// As per Deferred<'T> except can also be refreshed.
-type RefreshableDeferred<'t> =
-    | NotStarted
-    | Initialising
-    | Refreshing of 't
-    | Resolved of 't
+type AsyncOperation<'TIn, 'TOut> =
+    | Start of 'TIn
+    | Finished of 'TOut
 
 /// Some data which is has not yet been started being calculated, is currently being calculated, or has been resolved. Typically used for data on a model that will be loaded from the server.
 type Deferred<'t> =
@@ -70,13 +63,24 @@ type Deferred<'t> =
         | InProgress -> InProgress
         | Resolved value -> binder value
 
-module Deferred =
-    let toOption =
-        function
+    /// Maps Resolved to Some, everything else to None.
+    member this.ToOption() =
+        match this with
         | NotStarted
         | InProgress -> None
         | Resolved value -> Some value
 
+/// As per Deferred<'T> except can also be refreshed.
+type RefreshableDeferred<'t> =
+    | Refreshing of 't
+    | Deferred of Deferred<'t>
+
+/// Contains utility functions on the Deferred type.
+module Deferred =
+    /// Maps Resolved to Some, everything else to None.
+    let toOption (deferred: Deferred<'T>) = deferred.ToOption
+
+    /// Unwraps the Resolved value, or returns the default value if it is not resolved.
     let defaultValue x =
         function
         | NotStarted
