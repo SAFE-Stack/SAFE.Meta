@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>SAFE</RootNamespace>
+        <Authors>Isaac Abraham</Authors>
+        <Copyright>Copyright (c) 2024 Compositional IT</Copyright>
+        <PackageId>SAFE.Server</PackageId>
+        <PackageVersion>5.0.0</PackageVersion>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="SAFE.fs" />
+    </ItemGroup>
+    <Import Project="..\..\.paket\Paket.Restore.targets" />
+
+</Project>
