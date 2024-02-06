@@ -2,10 +2,10 @@ namespace SAFE
 
 open Fable.Remoting.Client
 
-/// Contains functionality to interact with the Server.
+/// Contains functionality to interact with Fable Remoting APIs.
 type Api =
-    /// <summary>Creates a Fable Remoting API proxy.</summary>
-    /// <param name="routeBuilder">A function which takes the name of the API and the name of the method and returns the route to the server. Defaults to "/api/{api name}/{method name}"</param>
+    /// <summary>Quickly creates a Fable Remoting API proxy.</summary>
+    /// <param name="routeBuilder">An optional function which takes the name of the API and the method being called, and generates the route to the server API. Defaults to `/api/{api name}/{method name}` e.g. `/api/ITodoApi/GetTodos`.</param>
     static member inline makeProxy<'TApi>(?routeBuilder) =
         let routeBuilder = defaultArg routeBuilder (sprintf "/api/%s/%s")
 
@@ -13,94 +13,105 @@ type Api =
         |> Remoting.withRouteBuilder routeBuilder
         |> Remoting.buildProxy<'TApi>
 
-/// An asynchronous message which should either be Started, or has Finished. Used commonly with the Elmish server request / response pattern.
-type AsyncOperation<'TIn, 'TOut> =
+/// Used commonly to model asynchronous calls to the server (or any other external service) within an Elmish message instead of two separate messages e.g. LoadData and DataLoaded. `Start` represents the initial request (command); `Finished` contains the resultant data on the callback.
+/// See https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state for more details.
+type ApiCall<'TIn, 'TOut> =
     | Start of 'TIn
     | Finished of 'TOut
 
-/// Some data which is has not yet been started being calculated, is currently being calculated, or has been resolved. Typically used for data on a model that will be loaded from the server.
-type Deferred<'t> =
+/// Typically used for data on a model that will be loaded from the server. This type represents some data which has either not yet started loading, is currently in the process of being loaded, or has been loaded and is available.
+/// See https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state#conclusion for more details.
+type RemoteData<'T> =
     | NotStarted
-    | InProgress
-    | Resolved of 't
+    | Loading
+    | Loaded of 'T
 
-    member this.HasResolved =
+    /// Unwraps the Loaded value, or returns the supplied default value.
+    member this.DefaultValue v =
         match this with
-        | Resolved _ -> true
         | NotStarted
-        | InProgress -> false
+        | Loading -> v
+        | Loaded value -> value
 
-    member this.IsStillInProgress =
+    /// Returns whether the `RemoteData<'T>` value has been loaded or not.
+    member this.HasLoaded =
         match this with
-        | InProgress -> true
         | NotStarted
-        | Resolved _ -> false
+        | Loading -> false
+        | Loaded _ -> true
 
+    /// Returns whether the `RemoteData<'T>` value is loading or not.
+    member this.IsStillLoading =
+        match this with
+        | Loading -> true
+        | NotStarted
+        | Loaded _ -> false
+
+    /// Returns whether the `RemoteData<'T>` value has started loading or not.
     member this.HasStarted =
         match this with
         | NotStarted -> false
-        | InProgress
-        | Resolved _ -> true
+        | Loading
+        | Loaded _ -> true
 
-    /// Transforms the underlying value of the input deferred value when it exists from type to another
+    /// Maps the underlying value of the remote data, when it exists, into another shape.
     member this.Map mapper =
         match this with
         | NotStarted -> NotStarted
-        | InProgress -> InProgress
-        | Resolved value -> Resolved(mapper value)
+        | Loading -> Loading
+        | Loaded value -> Loaded(mapper value)
 
-    /// Verifies that a `Deferred<'T>` value is resolved and the resolved data satisfies a given requirement.
+    /// Verifies that a `RemoteData<'T>` value is loaded, and that the data satisfies a given requirement.
     member this.Exists predicate =
         match this with
         | NotStarted -> false
-        | InProgress -> false
-        | Resolved value -> predicate value
+        | Loading -> false
+        | Loaded value -> predicate value
 
-    /// Like `map` but instead of transforming just the value into another type in the `Resolved` case, it will transform the value into potentially a different case of the `Deferred<'T>` type.
+    /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     member this.Bind binder =
         match this with
         | NotStarted -> NotStarted
-        | InProgress -> InProgress
-        | Resolved value -> binder value
+        | Loading -> Loading
+        | Loaded value -> binder value
 
-    /// Maps Resolved to Some, everything else to None.
+    /// Maps `Loaded` to `Some`, everything else to `None`.
     member this.ToOption() =
         match this with
         | NotStarted
-        | InProgress -> None
-        | Resolved value -> Some value
+        | Loading -> None
+        | Loaded value -> Some value
 
-/// As per Deferred<'T> except can also be refreshed.
-type RefreshableDeferred<'t> =
+/// As per `RemoteData<'T>` except can also be refreshed.
+type RefreshableRemoteData<'t> =
     | Refreshing of 't
-    | Deferred of Deferred<'t>
+    | RemoteData of RemoteData<'t>
 
-/// Contains utility functions on the Deferred type.
-module Deferred =
-    /// Maps Resolved to Some, everything else to None.
-    let toOption (deferred: Deferred<'T>) = deferred.ToOption
+/// Contains utility functions on the `RemoteData` type.
+module RemoteData =
+    /// Maps `Loaded` to `Some`, everything else to `None`.
+    let toOption (deferred: RemoteData<'T>) = deferred.ToOption
 
-    /// Unwraps the Resolved value, or returns the default value if it is not resolved.
-    let defaultValue x =
-        function
-        | NotStarted
-        | InProgress -> x
-        | Resolved value -> value
+    /// Unwraps the Loaded value, or returns the default value.
+    let defaultValue defaultValue (remoteData: RemoteData<'T>) = remoteData.DefaultValue defaultValue
 
-    /// Returns whether the `Deferred<'T>` value has been resolved or not.
-    let resolved (deferred: Deferred<'T>) = deferred.HasResolved
+    /// Returns whether the `RemoteData<'T>` value has been loaded or not.
+    let hasLoaded (remoteData: RemoteData<'T>) = remoteData.HasLoaded
 
-    /// Returns whether the `Deferred<'T>` value is in progress or not.
-    let inProgress (deferred: Deferred<_>) = deferred.IsStillInProgress
+    /// Returns whether the `RemoteData<'T>` value has started loading or not.
+    let hasStarted (remoteData: RemoteData<'T>) = remoteData.HasStarted
 
-    /// Transforms the underlying value of the input deferred value when it exists from type to another
-    let map mapper (deferred: Deferred<'T>) = deferred.Map mapper
+    /// Returns whether the `RemoteData<'T>` value is loading or not.
+    let isLoading (remoteData: RemoteData<_>) = remoteData.IsStillLoading
 
-    /// Verifies that a `Deferred<'T>` value is resolved and the resolved data satisfies a given requirement.
-    let exists predicate (deferred: Deferred<'T>) = deferred.Exists predicate
+    /// Maps the underlying value of the remote data, when it exists, into another shape
+    let map mapper (remoteData: RemoteData<'T>) = remoteData.Map mapper
 
-    /// Like `map` but instead of transforming just the value into another type in the `Resolved` case, it will transform the value into potentially a different case of the `Deferred<'T>` type.
-    let bind binder (deferred: Deferred<'T>) = deferred.Bind binder
+    /// Verifies that a `RemoteData<'T>` value is loaded, and that the data satisfies a given requirement.
+    let exists predicate (remoteData: RemoteData<'T>) = remoteData.Exists predicate
 
-/// An alias for a Deferred message which is a Result.
-type DeferredResult<'a, 'b> = Deferred<Result<'a, 'b>>
+    /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
+    let bind binder (remoteData: RemoteData<'T>) = remoteData.Bind binder
+
+/// An alias for a RemoteData message which is a Result.
+type RemoteDataResult<'a, 'b> = RemoteData<Result<'a, 'b>>
