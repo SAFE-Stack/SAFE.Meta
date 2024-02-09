@@ -19,7 +19,7 @@ module DI =
     let singleton<'T when 'T: not struct> (services: IServiceCollection) = services.AddSingleton<'T>()
     /// Shortcut for services.AddTransient<'T>
     let transient<'T when 'T: not struct> (services: IServiceCollection) = services.AddTransient<'T>()
-    /// Shortcut for services.AddScopes<'T>
+    /// Shortcut for services.AddScoped<'T>
     let scoped<'T when 'T: not struct> (services: IServiceCollection) = services.AddScoped<'T>()
 
 [<AutoOpen>]

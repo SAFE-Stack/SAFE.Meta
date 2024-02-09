@@ -29,6 +29,5 @@
     <ItemGroup>
         <Compile Include="SAFE.fs" />
     </ItemGroup>
-
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
