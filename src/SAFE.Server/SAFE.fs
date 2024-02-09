@@ -39,9 +39,9 @@ type Api =
     /// <param name="errorHandler">A function which takes an `Exception` and a `RouteInfo` and returns a Giraffe Handler. Defaults to `Ignore` the exception i.e. it will not be cascaded.</param>
     /// <param name="customOptions">A function which takes the current Fable Remoting options and returns a new set of options. Useful for applying any custom options.</param>
     static member make(api, ?routeBuilder, ?errorHandler, ?customOptions) =
-        let customOptions = defaultArg customOptions id
-        let errorHandler = defaultArg errorHandler (fun _ _ -> Ignore)
         let routeBuilder = defaultArg routeBuilder (sprintf "/api/%s/%s")
+        let errorHandler = defaultArg errorHandler (fun _ _ -> Ignore)
+        let customOptions = defaultArg customOptions id
 
         Remoting.createApi ()
         |> Remoting.withRouteBuilder routeBuilder
