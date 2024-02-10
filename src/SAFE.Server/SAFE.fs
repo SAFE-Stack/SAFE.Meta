@@ -32,6 +32,7 @@ module Extensions =
         /// Gets the current IConfiguration service from the IOC container.
         member this.Configuration = this.GetService<IConfiguration>()
 
+[<RequireQualifiedAccess>]
 type Api =
     /// <summary>Quickly creates a Fable Remoting API as an HTTP Handler for Giraffe.</summary>
     /// <param name="api">The Fable Remoting API. It must take in an `HTTPContext` as the only argument.</param>
