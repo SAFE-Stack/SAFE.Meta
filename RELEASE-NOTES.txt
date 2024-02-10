@@ -1,2 +1,4 @@
+v.5.0.0-beta2
+- Update types and dependencies
 v.5.0.0-beta1
 - Initial Release
