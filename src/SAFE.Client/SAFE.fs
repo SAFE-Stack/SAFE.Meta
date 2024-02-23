@@ -1,6 +1,7 @@
 namespace SAFE
 
 open Fable.Remoting.Client
+open Fable.SimpleJson
 
 /// Contains functionality to interact with Fable Remoting APIs.
 type Api =
@@ -12,6 +13,28 @@ type Api =
         Remoting.createApi ()
         |> Remoting.withRouteBuilder routeBuilder
         |> Remoting.buildProxy<'TApi>
+
+[<AutoOpen>]
+module Extensions =
+    type System.Exception with
+
+        member this.GetPropagatedError() =
+            match this with
+            | :? ProxyRequestException as exn ->
+                let response =
+                    exn.ResponseText
+                    |> Json.parseAs<{|
+                        error: {| ClassName: string; Message: string |}
+                        ignored: bool
+                        handled: bool
+                    |} >
+
+                response.error
+            | ex -> {|
+                ClassName = "Unknown"
+                Message = ex.Message
+              |}
+
 
 /// Used commonly to model asynchronous calls to the server (or any other external service) within an Elmish message instead of two separate messages e.g. LoadData and DataLoaded. `Start` represents the initial request (command); `Finished` contains the resultant data on the callback.
 /// See the AsyncOperation type in https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state for more details.
@@ -83,7 +106,7 @@ type Remote<'T> =
         | Loaded value -> Some value
 
 /// As per `Remote<'T>` except can also be refreshed.
-type Refresa<'t> =
+type RefresableRemote<'t> =
     | Refreshing of 't
     | Remote of Remote<'t>
 
