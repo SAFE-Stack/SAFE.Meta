@@ -44,6 +44,13 @@ type ApiCall<'TIn, 'TOut> =
     /// Represents the response of an API call.
     | Finished of 'TOut
 
+type ApiCall =
+    /// Makes an API call, automatically wrapping the successful reponse in a `Finished` message. You can also provide an optional handler for a server exception.
+    static member execute(apiCall, input, msg, ?onError) =
+        match onError with
+        | Some onError -> Elmish.Cmd.OfAsync.either apiCall input (Finished >> msg) onError
+        | None -> Elmish.Cmd.OfAsync.perform apiCall input (Finished >> msg)
+
 /// Typically used for data on a model that will be loaded from the server. This type represents some data which has either not yet started loading, is currently in the process of being loaded, or has been loaded and is available.
 /// See the Deferred type in https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state#conclusion for more details.
 type RemoteData<'T> =
@@ -116,7 +123,7 @@ type RefresableRemoteData<'t> =
     | Remote of RemoteData<'t>
 
 /// Contains utility functions on the `Remote` type.
-module Remote =
+module RemoteData =
     /// Maps `Loaded` to `Some`, everything else to `None`.
     let toOption (remote: RemoteData<'T>) = remote.ToOption
 
@@ -141,5 +148,5 @@ module Remote =
     /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     let bind binder (remote: RemoteData<'T>) = remote.Bind binder
 
-/// An alias for a Remote message which is a Result.
-type RemoteResult<'a, 'b> = RemoteData<Result<'a, 'b>>
+/// An alias for a RemoteData message which is a Result.
+type RemoteDataResult<'a, 'b> = RemoteData<Result<'a, 'b>>

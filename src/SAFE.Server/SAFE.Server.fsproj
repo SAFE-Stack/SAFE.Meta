@@ -4,7 +4,7 @@
         <RootNamespace>SAFE</RootNamespace>
         <Authors>Isaac Abraham</Authors>
         <Copyright>Copyright (c) 2024 Compositional IT</Copyright>
-        <PackageVersion>5.0.0-beta3</PackageVersion>
+        <PackageVersion>5.0.0-beta4</PackageVersion>
         <TargetFramework>net8.0</TargetFramework>
         <PackageId>SAFE.Server</PackageId>
     </PropertyGroup>
