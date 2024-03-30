@@ -18,6 +18,7 @@ type Api =
 module Extensions =
     type System.Exception with
 
+        /// Deserializes a propagated exception raised by Fable Remoting.
         member this.GetPropagatedError() =
             match this with
             | :? ProxyRequestException as exn ->
@@ -35,18 +36,22 @@ module Extensions =
                 Message = ex.Message
               |}
 
-
 /// Used commonly to model asynchronous calls to the server (or any other external service) within an Elmish message instead of two separate messages e.g. LoadData and DataLoaded. `Start` represents the initial request (command); `Finished` contains the resultant data on the callback.
 /// See the AsyncOperation type in https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state for more details.
 type ApiCall<'TIn, 'TOut> =
+    /// Represents an API call that should be initiated.
     | Start of 'TIn
+    /// Represents the response of an API call.
     | Finished of 'TOut
 
 /// Typically used for data on a model that will be loaded from the server. This type represents some data which has either not yet started loading, is currently in the process of being loaded, or has been loaded and is available.
 /// See the Deferred type in https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state#conclusion for more details.
-type Remote<'T> =
+type RemoteData<'T> =
+    /// The data has not yet started loading.
     | NotStarted
+    /// The data is now being loaded.
     | Loading
+    /// The data is available.
     | Loaded of 'T
 
     /// Unwraps the Loaded value, or returns the supplied default value.
@@ -56,21 +61,21 @@ type Remote<'T> =
         | Loading -> v
         | Loaded value -> value
 
-    /// Returns whether the `Remote<'T>` value has been loaded or not.
+    /// Returns whether the `RemoteData<'T>` value has been loaded or not.
     member this.HasLoaded =
         match this with
         | NotStarted
         | Loading -> false
         | Loaded _ -> true
 
-    /// Returns whether the `Remote<'T>` value is loading or not.
+    /// Returns whether the `RemoteData<'T>` value is loading or not.
     member this.IsStillLoading =
         match this with
         | Loading -> true
         | NotStarted
         | Loaded _ -> false
 
-    /// Returns whether the `Remote<'T>` value has started loading or not.
+    /// Returns whether the `RemoteData<'T>` value has started loading or not.
     member this.HasStarted =
         match this with
         | NotStarted -> false
@@ -84,14 +89,14 @@ type Remote<'T> =
         | Loading -> Loading
         | Loaded value -> Loaded(mapper value)
 
-    /// Verifies that a `Remote<'T>` value is loaded, and that the data satisfies a given requirement.
+    /// Verifies that a `RemoteData<'T>` value is loaded, and that the data satisfies a given requirement.
     member this.Exists predicate =
         match this with
         | NotStarted -> false
         | Loading -> false
         | Loaded value -> predicate value
 
-    /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `Remote<'T>` type.
+    /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     member this.Bind binder =
         match this with
         | NotStarted -> NotStarted
@@ -105,36 +110,36 @@ type Remote<'T> =
         | Loading -> None
         | Loaded value -> Some value
 
-/// As per `Remote<'T>` except can also be refreshed.
-type RefresableRemote<'t> =
+/// As per `RemoteData<'T>` except can also be refreshed.
+type RefresableRemoteData<'t> =
     | Refreshing of 't
-    | Remote of Remote<'t>
+    | Remote of RemoteData<'t>
 
 /// Contains utility functions on the `Remote` type.
 module Remote =
     /// Maps `Loaded` to `Some`, everything else to `None`.
-    let toOption (remote: Remote<'T>) = remote.ToOption
+    let toOption (remote: RemoteData<'T>) = remote.ToOption
 
     /// Unwraps the Loaded value, or returns the default value.
-    let defaultValue defaultValue (remote: Remote<'T>) = remote.DefaultValue defaultValue
+    let defaultValue defaultValue (remote: RemoteData<'T>) = remote.DefaultValue defaultValue
 
-    /// Returns whether the `Remote<'T>` value has been loaded or not.
-    let hasLoaded (remote: Remote<'T>) = remote.HasLoaded
+    /// Returns whether the `RemoteData<'T>` value has been loaded or not.
+    let hasLoaded (remote: RemoteData<'T>) = remote.HasLoaded
 
-    /// Returns whether the `Remote<'T>` value has started loading or not.
-    let hasStarted (remote: Remote<'T>) = remote.HasStarted
+    /// Returns whether the `RemoteData<'T>` value has started loading or not.
+    let hasStarted (remote: RemoteData<'T>) = remote.HasStarted
 
-    /// Returns whether the `Remote<'T>` value is loading or not.
-    let isLoading (remote: Remote<_>) = remote.IsStillLoading
+    /// Returns whether the `RemoteData<'T>` value is loading or not.
+    let isLoading (remote: RemoteData<_>) = remote.IsStillLoading
 
     /// Maps the underlying value of the remote data, when it exists, into another shape
-    let map mapper (remote: Remote<'T>) = remote.Map mapper
+    let map mapper (remote: RemoteData<'T>) = remote.Map mapper
 
-    /// Verifies that a `Remote<'T>` value is loaded, and that the data satisfies a given requirement.
-    let exists predicate (remote: Remote<'T>) = remote.Exists predicate
+    /// Verifies that a `RemoteData<'T>` value is loaded, and that the data satisfies a given requirement.
+    let exists predicate (remote: RemoteData<'T>) = remote.Exists predicate
 
-    /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `Remote<'T>` type.
-    let bind binder (remote: Remote<'T>) = remote.Bind binder
+    /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
+    let bind binder (remote: RemoteData<'T>) = remote.Bind binder
 
 /// An alias for a Remote message which is a Result.
-type RemoteResult<'a, 'b> = Remote<Result<'a, 'b>>
+type RemoteResult<'a, 'b> = RemoteData<Result<'a, 'b>>
