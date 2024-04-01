@@ -1,3 +1,5 @@
+v.5.0.0-beta5
+- Even easier execution of API calls.
 v.5.0.0-beta4
 - Easier execution of API calls.
 v.5.0.0-beta3
