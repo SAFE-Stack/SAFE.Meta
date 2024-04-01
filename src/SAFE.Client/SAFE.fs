@@ -45,8 +45,14 @@ type ApiCall<'TIn, 'TOut> =
     | Finished of 'TOut
 
 type ApiCall =
-    /// Makes an API call, automatically wrapping the successful reponse in a `Finished` message. You can also provide an optional handler for a server exception.
-    static member execute(apiCall, input, msg, ?onError) =
+    /// Makes an API call, automatically wrapping the successful reponse in a `Finished` message. You can also provide an optional message handler for server exceptions.
+    static member execute<'TIn, 'TOut, 'TMsgIn, 'TMsg>
+        (
+            apiCall: 'TIn -> Async<'TOut>,
+            input: 'TIn,
+            msg: ApiCall<'TMsgIn, 'TOut> -> 'TMsg,
+            ?onError
+        ) =
         match onError with
         | Some onError -> Elmish.Cmd.OfAsync.either apiCall input (Finished >> msg) onError
         | None -> Elmish.Cmd.OfAsync.perform apiCall input (Finished >> msg)
