@@ -45,60 +45,6 @@ type ApiCall<'TStart, 'TFinished> =
     /// Represents the response of an API call.
     | Finished of 'TFinished
 
-[<EditorBrowsable(EditorBrowsableState.Never)>]
-type ApiCall =
-    static member execute<'TStart, 'TFinished, 'TMsg>
-        (
-            workflow: Async<'TFinished>,
-            onSuccess: ApiCall<'TStart, 'TFinished> -> 'TMsg,
-            ?onError: exn -> 'TMsg
-        ) =
-        let bind dispatch = async {
-            let! response = Async.Catch workflow
-
-            match response, onError with
-            | Choice1Of2 response, _ -> response |> Finished |> onSuccess |> dispatch
-            | Choice2Of2 ex, Some onError -> ex |> onError |> dispatch
-            | Choice2Of2 _, None -> () // no exception handler, so just suppress the exception
-        }
-
-        [ bind >> Elmish.Cmd.OfAsync.start ]
-
-module Async =
-    /// <summary>
-    /// Converts an async workflow into a Cmd to be dispatched within the Elmish loop. Automatically wraps the successful reponse in a `ApiCall.Finished` case, but will ignore any exceptions that the workflow raises.
-    /// </summary>
-    /// <param name="asyncWorkflow">The asynchronous API call to handle.</param>
-    /// <param name="onSuccess">The Elmish loop message that handles the result.</param>
-    /// <typeparam name="'TStart">The type of the message Start value. Not used by this function.</typeparam>
-    /// <typeparam name="'TFinished">The type of the message Finished value. Must match the type of the API call result.</typeparam>
-    /// <typeparam name="'TMsg">The overall union type of the Elmish loop message.</typeparam>
-    /// <returns>A command that will handle the response of the API call.</returns>
-    let toCmdUnsafe
-        (onSuccessMessage: ApiCall<'TStart, 'TFinished> -> 'TMsg)
-        (workflow: Async<'TFinished>)
-        : Elmish.Cmd<'TMsg> =
-        ApiCall.execute (workflow, onSuccessMessage)
-
-    /// <summary>
-    /// Converts an async workflow into a Cmd to be dispatched within the Elmish loop. Automatically wraps the successful reponse in a `ApiCall.Finished` case, with a secondary handler for any exceptions raised by the workflow.
-    /// </summary>
-    /// <param name="asyncWorkflow">The asynchronous API call to handle.</param>
-    /// <param name="onSuccess">The Elmish loop message that handles the result.</param>
-    /// <param name="onError">The Elmish loop message that handles the exception case.</param>
-    /// <typeparam name="'TStart">The type of the message Start value. Not used by this function.</typeparam>
-    /// <typeparam name="'TFinished">The type of the message Finished value. Must match the type of the API call result.</typeparam>
-    /// <typeparam name="'TMsg">The overall union type of the Elmish loop message.</typeparam>
-    /// <returns>A command that will handle the response of the API call.</returns>
-    let toCmd
-        (onSuccess: ApiCall<'TStart, 'TFinished> -> 'TMsg)
-        (onError: exn -> 'TMsg)
-        (workflow: Async<'TFinished>)
-        : Elmish.Cmd<'TMsg> =
-        ApiCall.execute (workflow, onSuccess, onError)
-
-// Elmish.Cmd.OfAsyncWith.perform Elmish.Cmd.start apiCall input (Finished >> msg)
-
 /// Typically used for data on a model that will be loaded from the server. This type represents some data which has either not yet started loading, is currently in the process of being loaded, or has been loaded and is available.
 /// See the Deferred type in https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state#conclusion for more details.
 type RemoteData<'T> =
