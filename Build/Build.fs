@@ -1,9 +1,15 @@
 ﻿open Fake.Core
+open Fake.DotNet
+
+let projects = [
+    "../src/SAFE.client/SAFE.Client.fsproj"
+    "../src/SAFE.server/SAFE.Server.fsproj"
+]
 
 let execContext = Context.FakeExecutionContext.Create false "build.fsx" []
 Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
 
-Target.create "Bundle" (fun _ -> printfn "We are bundling!")
+Target.create "Bundle" (fun _ -> projects |> List.map (DotNet.build id) |> ignore)
 
 
 
