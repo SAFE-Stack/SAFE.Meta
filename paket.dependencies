@@ -2,9 +2,11 @@ source https://api.nuget.org/v3/index.json
 framework: net8.0
 storage: none
 
+nuget Fake.Core.Target
 nuget FSharp.Core ~> 8
 
 nuget Fable.Remoting.Giraffe ~> 5
+nuget Fstoolkit.ErrorHandling
 nuget Saturn ~> 0
 
 nuget Fable.Core ~> 4
