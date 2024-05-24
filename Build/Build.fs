@@ -15,15 +15,15 @@ module Processes =
 
 
     let run proc arg dir = proc arg dir |> Proc.run |> ignore
+
     let dotnet = createProcess "dotnet"
 
     let runDotnet = run dotnet
 
 let sourceFolder = Path.getFullName """..\src"""
-
 let outputFolder = Path.getFullName """..\nugetPackages"""
-let projects = [ "SAFE.Client"; "SAFE.Server" ]
 
+let projects = [ "SAFE.Client"; "SAFE.Server" ]
 
 Target.create "Bundle" (fun _ ->
     let version = Environment.environVarOrFail "VERSION"
