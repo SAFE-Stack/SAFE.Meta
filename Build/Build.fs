@@ -48,14 +48,14 @@ Target.create "Publish" (fun _ ->
 
     let nugetArgs = [
         "push"
-        outputFolder + """\*.nupkg"""
+        "*.nupkg"
         "--api-key"
         nugetApiKey
         "--source"
         """https://api.nuget.org/v3/index.json"""
     ]
 
-    Processes.runDotnet [ "nuget"; yield! nugetArgs ] sourceFolder)
+    Processes.runDotnet [ "nuget"; yield! nugetArgs ] outputFolder)
 
 "Bundle" ==> "Publish" |> ignore
 
