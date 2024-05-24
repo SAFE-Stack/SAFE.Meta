@@ -27,7 +27,7 @@ let projects = [ "SAFE.Client"; "SAFE.Server" ]
 
 Target.create "Bundle" (fun _ ->
     let version = Environment.environVarOrFail "VERSION"
-    let releaseNotes = Environment.environVarOrFail "RELEASE_NOTE_URL"
+    let releaseNotes = Environment.environVarOrFail "RELEASE_NOTES_URL"
 
     projects
     |> List.map (fun project ->
