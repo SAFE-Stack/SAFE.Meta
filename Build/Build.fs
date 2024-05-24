@@ -16,19 +16,30 @@ module Processes =
 
     let run proc arg dir = proc arg dir |> Proc.run |> ignore
     let dotnet = createProcess "dotnet"
-    
+
     let runDotnet = run dotnet
 
 let sourceFolder = Path.getFullName """..\src"""
 
 let outputFolder = Path.getFullName """..\nugetPackages"""
-
 let projects = [ "SAFE.Client"; "SAFE.Server" ]
 
 
 Target.create "Bundle" (fun _ ->
+    let version = Environment.environVarOrFail "VERSION"
+    let releaseNotes = Environment.environVarOrFail "RELEASE_NOTE_URL"
+
     projects
-    |> List.map (fun project -> Processes.runDotnet [ "pack"; "-o"; outputFolder ] $"""{sourceFolder}/{project}""")
+    |> List.map (fun project ->
+        Processes.runDotnet
+            [
+                "pack"
+                "-o"
+                outputFolder
+                $"-p:PackageVersion={version}"
+                $"-p:PackageReleaseNotes={releaseNotes}"
+            ]
+            $"""{sourceFolder}/{project}""")
     |> ignore)
 
 
