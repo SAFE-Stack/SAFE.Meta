@@ -1,40 +1,51 @@
 ﻿open Fake.Core
 open Fake.Core.TargetOperators
-open Fake.DotNet
-
-let projects = [
-    """..\src\SAFE.client\SAFE.Client.fsproj"""
-    """..\src\SAFE.server\SAFE.Server.fsproj"""
-]
-
-let outputFolder = """..\nugetPackages"""
+open Fake.IO
 
 let execContext = Context.FakeExecutionContext.Create false "build.fsx" []
 Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
 
+module Processes =
+    let createProcess exe args dir =
+        // Use `fromRawCommand` rather than `fromRawCommandLine`, as its behaviour is less likely to be misunderstood.
+        // See https://github.com/SAFE-Stack/SAFE-template/issues/551.
+        CreateProcess.fromRawCommand exe args
+        |> CreateProcess.withWorkingDirectory dir
+        |> CreateProcess.ensureExitCode
+
+
+    let dotnet args dir = createProcess "dotnet" args dir
+    let run proc arg dir = proc arg dir |> Proc.run |> ignore
+
+
+
+let sourceFolder = Path.getFullName """..\src"""
+
+let outputFolder = Path.getFullName """..\nugetPackages"""
+
+let projects = [ "SAFE.Client"; "SAFE.Server" ]
+
+
 Target.create "Bundle" (fun _ ->
     projects
-    |> List.map (
-        DotNet.pack (fun args -> {
-            args with
-                Configuration = DotNet.BuildConfiguration.Release
-                OutputPath = Some outputFolder
-        })
-    )
+    |> List.map (fun project ->
+        Processes.run Processes.dotnet [ "pack"; "-o"; outputFolder ] $"""{sourceFolder}/{project}""")
     |> ignore)
 
 
 Target.create "Publish" (fun _ ->
     let nugetApiKey = Environment.environVarOrFail "NUGET_API_KEY"
 
-    let nugetArgs =
-        $"""push "{outputFolder}\**\*.nupkg" --api-key {nugetApiKey} --source https://api.nuget.org/v3/index.json"""
+    let nugetArgs = [
+        "push"
+        outputFolder + """\**\*.nupkg"""
+        "--api-key"
+        nugetApiKey
+        "--source"
+        """https://api.nuget.org/v3/index.json"""
+    ]
 
-    let result =
-        DotNet.exec (fun x -> { x with DotNetCliPath = "dotnet" }) "nuget" nugetArgs
-
-    if not result.OK then
-        failwithf "`dotnet %s` failed" "nuget push")
+    Processes.run Processes.dotnet [ "nuget"; yield! nugetArgs ] sourceFolder)
 
 
 "Bundle" ==> "Publish" |> ignore
