@@ -14,10 +14,10 @@ module Processes =
         |> CreateProcess.ensureExitCode
 
 
-    let dotnet args dir = createProcess "dotnet" args dir
     let run proc arg dir = proc arg dir |> Proc.run |> ignore
-
-
+    let dotnet = createProcess "dotnet"
+    
+    let runDotnet = run dotnet
 
 let sourceFolder = Path.getFullName """..\src"""
 
@@ -28,8 +28,7 @@ let projects = [ "SAFE.Client"; "SAFE.Server" ]
 
 Target.create "Bundle" (fun _ ->
     projects
-    |> List.map (fun project ->
-        Processes.run Processes.dotnet [ "pack"; "-o"; outputFolder ] $"""{sourceFolder}/{project}""")
+    |> List.map (fun project -> Processes.runDotnet [ "pack"; "-o"; outputFolder ] $"""{sourceFolder}/{project}""")
     |> ignore)
 
 
@@ -38,18 +37,16 @@ Target.create "Publish" (fun _ ->
 
     let nugetArgs = [
         "push"
-        outputFolder + """\**\*.nupkg"""
+        outputFolder + """\*.nupkg"""
         "--api-key"
         nugetApiKey
         "--source"
         """https://api.nuget.org/v3/index.json"""
     ]
 
-    Processes.run Processes.dotnet [ "nuget"; yield! nugetArgs ] sourceFolder)
-
+    Processes.runDotnet [ "nuget"; yield! nugetArgs ] sourceFolder)
 
 "Bundle" ==> "Publish" |> ignore
-
 
 [<EntryPoint>]
 let main args =
