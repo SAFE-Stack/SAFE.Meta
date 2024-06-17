@@ -2,17 +2,19 @@ namespace SAFE
 
 open Fable.Remoting.Client
 open Fable.SimpleJson
-open System.ComponentModel
 
 /// Contains functionality to interact with Fable Remoting APIs.
 type Api =
     /// <summary>Quickly creates a Fable Remoting API proxy. For more details, see https://zaid-ajaj.github.io/Fable.Remoting/.</summary>
     /// <param name="routeBuilder">An optional function which takes the name of the API and the method being called, and generates the route to the server API. Defaults to `/api/{api name}/{method name}` e.g. `/api/ITodoApi/GetTodos`.</param>
-    static member inline makeProxy<'TApi>(?routeBuilder) =
+    /// <param name="customOptions">An optional function which allows you to customize the API proxy such as Binary Serialization e.g. https://zaid-ajaj.github.io/Fable.Remoting/#/advanced/binary-serialization.</param>
+    static member inline makeProxy<'TApi>(?routeBuilder, ?customOptions) =
         let routeBuilder = defaultArg routeBuilder (sprintf "/api/%s/%s")
+        let customOptions = defaultArg customOptions id
 
         Remoting.createApi ()
         |> Remoting.withRouteBuilder routeBuilder
+        |> customOptions
         |> Remoting.buildProxy<'TApi>
 
 [<AutoOpen>]
