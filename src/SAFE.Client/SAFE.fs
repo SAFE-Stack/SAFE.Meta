@@ -71,35 +71,50 @@ type RemoteData<'T> =
         | Loading(Some value)
         | Loaded value -> value
 
-    /// Returns whether the `RemoteData<'T>` value has been loaded or not.
+    /// Returns whether the `RemoteData<'T>` value has been loaded.
     member this.HasLoaded =
         match this with
         | NotStarted
         | Loading _ -> false
         | Loaded _ -> true
 
-    /// Returns whether the `RemoteData<'T>` value is loading or not.
+    /// Returns whether the `RemoteData<'T>` value has been loaded.
+    member this.HasData =
+        match this with
+        | NotStarted
+        | Loading None -> false
+        | Loading(Some _)
+        | Loaded _ -> true
+
+    /// Returns whether the `RemoteData<'T>` value is loading. This will return true for both first-time and refresh-style loads.
     member this.IsStillLoading =
         match this with
         | Loading _ -> true
         | NotStarted
         | Loaded _ -> false
 
-    /// Returns whether the `RemoteData<'T>` value has started loading or not.
-    member this.HasStarted =
+    /// Returns whether the `RemoteData<'T>` value is refreshing itself i.e. Loading (Some _)
+    member this.IsRefreshing =
         match this with
-        | NotStarted -> false
+        | Loading(Some _) -> true
+        | _ -> false
+
+    /// Returns whether the `RemoteData<'T>` value has not yet started.
+    member this.HasNotStarted =
+        match this with
+        | NotStarted -> true
         | Loading _
-        | Loaded _ -> true
+        | Loaded _ -> false
 
     /// Maps the underlying value of the remote data, when it exists, into another shape.
     member this.Map mapper =
         match this with
+        | NotStarted -> NotStarted
+        | Loading None -> Loading None
         | Loading(Some value) -> Loading(Some(mapper value))
         | Loaded value -> Loaded(mapper value)
-        | v -> v
 
-    /// Verifies that a `RemoteData<'T>` value is loaded, and that the data satisfies a given requirement.
+    /// Verifies that a `RemoteData<'T>` value has some data loaded (may be Loading or Loaded), and that the data satisfies a given requirement.
     member this.Exists predicate =
         match this with
         | NotStarted
@@ -107,7 +122,7 @@ type RemoteData<'T> =
         | Loading(Some value)
         | Loaded value -> predicate value
 
-    /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
+    /// Like `map` but instead of mapping just the value into another type in the `Loading` or `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     member this.Bind binder =
         match this with
         | Loading(Some value)
@@ -130,14 +145,20 @@ module RemoteData =
     /// Unwraps the Loaded value, or returns the default value.
     let defaultValue defaultValue (remote: RemoteData<'T>) = remote.DefaultValue defaultValue
 
-    /// Returns whether the `RemoteData<'T>` value has been loaded or not.
+    /// Returns whether the `RemoteData<'T>` value has been loaded.
     let hasLoaded (remote: RemoteData<'T>) = remote.HasLoaded
 
-    /// Returns whether the `RemoteData<'T>` value has started loading or not.
-    let hasStarted (remote: RemoteData<'T>) = remote.HasStarted
+    /// Returns whether the `RemoteData<'T>` value has started loading.
+    let hasNotStarted (remote: RemoteData<'T>) = remote.HasNotStarted
 
-    /// Returns whether the `RemoteData<'T>` value is loading or not.
+    /// Returns whether the `RemoteData<'T>` value is loading.
     let isLoading (remote: RemoteData<_>) = remote.IsStillLoading
+
+    /// Returns whether the `RemoteData<'T>` value is refreshing.
+    let isRefreshing (remote: RemoteData<_>) = remote.IsRefreshing
+
+    /// Returns whether the `RemoteData<'T>` value has data.
+    let hasData (remote: RemoteData<_>) = remote.HasData
 
     /// Maps the underlying value of the remote data, when it exists, into another shape
     let map mapper (remote: RemoteData<'T>) = remote.Map mapper
