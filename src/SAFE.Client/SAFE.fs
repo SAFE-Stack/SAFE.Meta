@@ -137,6 +137,18 @@ type RemoteData<'T> =
         | NotStarted
         | Loading None -> None
 
+    /// Transitions to Loading, retaining existing data as needed.
+    ///
+    /// ```
+    /// NotStarted -> Loading None
+    /// Loaded x | Loading x -> Loading (Some x)
+    /// ```
+    member this.StartLoading() =
+        match this with
+        | NotStarted -> Loading None
+        | Loaded data -> Loading(Some data)
+        | Loading x -> Loading x
+
 /// Contains utility functions on the `Remote` type.
 module RemoteData =
     /// Maps `Loaded` to `Some`, everything else to `None`.
@@ -168,3 +180,9 @@ module RemoteData =
 
     /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     let bind binder (remote: RemoteData<'T>) = remote.Bind binder
+
+    /// Transitions to Loading, retaining existing data as needed.
+    /// `Loaded x -> Loading x`;
+    /// `NotStarted -> Loading None`;
+    /// `Loading x -> Loading x`;
+    let startLoading (remote: RemoteData<'T>) = remote.StartLoading
