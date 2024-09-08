@@ -28,11 +28,13 @@ module Extensions =
             | :? ProxyRequestException as exn ->
                 let response =
                     exn.ResponseText
-                    |> Json.parseAs<{|
-                        error: {| ClassName: string; Message: string |}
-                        ignored: bool
-                        handled: bool
-                    |} >
+                    |> Json.parseAs<
+                        {|
+                            error: {| ClassName: string; Message: string |}
+                            ignored: bool
+                            handled: bool
+                        |}
+                        >
 
                 response.error
             | ex -> {|
@@ -56,8 +58,8 @@ type ApiCall<'TStart, 'TFinished> =
 type RemoteData<'T> =
     /// The data has not yet started loading.
     | NotStarted
-    /// The data is now being loaded.
-    | Loading
+    /// The data is now being loaded. May already contain some data i.e. a refresh operation is in process.
+    | Loading of 'T option
     /// The data is available.
     | Loaded of 'T
 
@@ -65,20 +67,21 @@ type RemoteData<'T> =
     member this.DefaultValue v =
         match this with
         | NotStarted
-        | Loading -> v
+        | Loading None -> v
+        | Loading(Some value)
         | Loaded value -> value
 
     /// Returns whether the `RemoteData<'T>` value has been loaded or not.
     member this.HasLoaded =
         match this with
         | NotStarted
-        | Loading -> false
+        | Loading _ -> false
         | Loaded _ -> true
 
     /// Returns whether the `RemoteData<'T>` value is loading or not.
     member this.IsStillLoading =
         match this with
-        | Loading -> true
+        | Loading _ -> true
         | NotStarted
         | Loaded _ -> false
 
@@ -86,41 +89,38 @@ type RemoteData<'T> =
     member this.HasStarted =
         match this with
         | NotStarted -> false
-        | Loading
+        | Loading _
         | Loaded _ -> true
 
     /// Maps the underlying value of the remote data, when it exists, into another shape.
     member this.Map mapper =
         match this with
-        | NotStarted -> NotStarted
-        | Loading -> Loading
+        | Loading(Some value) -> Loading(Some(mapper value))
         | Loaded value -> Loaded(mapper value)
+        | v -> v
 
     /// Verifies that a `RemoteData<'T>` value is loaded, and that the data satisfies a given requirement.
     member this.Exists predicate =
         match this with
-        | NotStarted -> false
-        | Loading -> false
+        | NotStarted
+        | Loading None -> false
+        | Loading(Some value)
         | Loaded value -> predicate value
 
     /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     member this.Bind binder =
         match this with
-        | NotStarted -> NotStarted
-        | Loading -> Loading
+        | Loading(Some value)
         | Loaded value -> binder value
+        | v -> v
 
-    /// Maps `Loaded` to `Some`, everything else to `None`.
+    /// Maps `Loaded` or `Loading Some` to `Some`, everything else to `None`.
     member this.ToOption() =
         match this with
+        | Loaded value
+        | Loading(Some value) -> Some value
         | NotStarted
-        | Loading -> None
-        | Loaded value -> Some value
-
-/// As per `RemoteData<'T>` except can also be refreshed.
-type RefresableRemoteData<'t> =
-    | Refreshing of 't
-    | Remote of RemoteData<'t>
+        | Loading None -> None
 
 /// Contains utility functions on the `Remote` type.
 module RemoteData =
@@ -147,6 +147,3 @@ module RemoteData =
 
     /// Like `map` but instead of mapping just the value into another type in the `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     let bind binder (remote: RemoteData<'T>) = remote.Bind binder
-
-/// An alias for a RemoteData message which is a Result.
-type RemoteDataResult<'a, 'b> = RemoteData<Result<'a, 'b>>
