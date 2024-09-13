@@ -65,11 +65,7 @@ type RemoteData<'T> =
 
     /// Unwraps the Loaded value, or returns the supplied default value.
     member this.DefaultValue v =
-        match this with
-        | NotStarted
-        | Loading None -> v
-        | Loading(Some value)
-        | Loaded value -> value
+        this.ToOption() |> Option.defaultValue v
 
     /// Returns whether the `RemoteData<'T>` value has been loaded.
     member this.HasLoaded =
@@ -79,12 +75,7 @@ type RemoteData<'T> =
         | Loaded _ -> true
 
     /// Returns whether the `RemoteData<'T>` value has been loaded.
-    member this.HasData =
-        match this with
-        | NotStarted
-        | Loading None -> false
-        | Loading(Some _)
-        | Loaded _ -> true
+    member this.HasData = Option.isSome (this.ToOption())
 
     /// Returns whether the `RemoteData<'T>` value is loading. This will return true for both first-time and refresh-style loads.
     member this.IsStillLoading =
@@ -116,18 +107,13 @@ type RemoteData<'T> =
 
     /// Verifies that a `RemoteData<'T>` value has some data loaded (may be Loading or Loaded), and that the data satisfies a given requirement.
     member this.Exists predicate =
-        match this with
-        | NotStarted
-        | Loading None -> false
-        | Loading(Some value)
-        | Loaded value -> predicate value
+        this.ToOption() |> Option.exists predicate
 
     /// Like `map` but instead of mapping just the value into another type in the `Loading` or `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     member this.Bind binder =
-        match this with
-        | Loading(Some value)
-        | Loaded value -> binder value
-        | v -> v
+        match this.ToOption() with
+        | Some v -> binder v
+        | None -> this
 
     /// Maps `Loaded` or `Loading Some` to `Some`, everything else to `None`.
     member this.ToOption() =
@@ -140,14 +126,10 @@ type RemoteData<'T> =
     /// Transitions to Loading, retaining existing data as needed.
     ///
     /// ```
-    /// NotStarted -> Loading None
-    /// Loaded x | Loading x -> Loading (Some x)
+    /// NotStarted | Loading None -> Loading None
+    /// Loaded x | Loading (Some x) -> Loading (Some x)
     /// ```
-    member this.StartLoading() =
-        match this with
-        | NotStarted -> Loading None
-        | Loaded data -> Loading(Some data)
-        | Loading x -> Loading x
+    member this.StartLoading() = Loading(this.ToOption())
 
 /// Contains utility functions on the `Remote` type.
 module RemoteData =
