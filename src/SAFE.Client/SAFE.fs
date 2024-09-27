@@ -2,6 +2,7 @@ namespace SAFE
 
 open Fable.Remoting.Client
 open Fable.SimpleJson
+open System
 
 /// Contains functionality to interact with Fable Remoting APIs.
 type Api =
@@ -64,8 +65,7 @@ type RemoteData<'T> =
     | Loaded of 'T
 
     /// Unwraps the Loaded value, or returns the supplied default value.
-    member this.DefaultValue v =
-        this.ToOption() |> Option.defaultValue v
+    member this.DefaultValue v = this.AsOption |> Option.defaultValue v
 
     /// Returns whether the `RemoteData<'T>` value has been loaded.
     member this.HasLoaded =
@@ -74,8 +74,15 @@ type RemoteData<'T> =
         | Loading _ -> false
         | Loaded _ -> true
 
+    /// Returns whether the `RemoteData<'T>` value has started loading or not.
+    member this.HasStarted =
+        match this with
+        | NotStarted -> false
+        | Loading _
+        | Loaded _ -> true
+
     /// Returns whether the `RemoteData<'T>` value has been loaded.
-    member this.HasData = Option.isSome (this.ToOption())
+    member this.HasData = Option.isSome this.AsOption
 
     /// Returns whether the `RemoteData<'T>` value is loading. This will return true for both first-time and refresh-style loads.
     member this.IsStillLoading =
@@ -101,22 +108,26 @@ type RemoteData<'T> =
     member this.Map mapper =
         match this with
         | NotStarted -> NotStarted
+        | Loaded value -> Loaded(mapper value)
         | Loading None -> Loading None
         | Loading(Some value) -> Loading(Some(mapper value))
-        | Loaded value -> Loaded(mapper value)
 
     /// Verifies that a `RemoteData<'T>` value has some data loaded (may be Loading or Loaded), and that the data satisfies a given requirement.
     member this.Exists predicate =
-        this.ToOption() |> Option.exists predicate
+        this.AsOption |> Option.exists predicate
 
     /// Like `map` but instead of mapping just the value into another type in the `Loading` or `Loaded` case, it will transform the value into potentially a different case of the `RemoteData<'T>` type.
     member this.Bind binder =
-        match this.ToOption() with
+        match this.AsOption with
         | Some v -> binder v
         | None -> this
 
     /// Maps `Loaded` or `Loading Some` to `Some`, everything else to `None`.
-    member this.ToOption() =
+    [<Obsolete "Use AsOption instead">]
+    member this.ToOption() = this.AsOption
+
+    /// Maps `Loaded` or `Loading Some` to `Some`, everything else to `None`.
+    member this.AsOption =
         match this with
         | Loaded value
         | Loading(Some value) -> Some value
@@ -129,18 +140,25 @@ type RemoteData<'T> =
     /// NotStarted | Loading None -> Loading None
     /// Loaded x | Loading (Some x) -> Loading (Some x)
     /// ```
-    member this.StartLoading() = Loading(this.ToOption())
+    member this.StartLoading() = Loading this.AsOption
 
 /// Contains utility functions on the `Remote` type.
 module RemoteData =
     /// Maps `Loaded` to `Some`, everything else to `None`.
-    let toOption (remote: RemoteData<'T>) = remote.ToOption
+    let asOption (remote: RemoteData<'T>) = remote.AsOption
+
+    /// Maps `Loaded` to `Some`, everything else to `None`.
+    [<Obsolete "Use AsOption instead">]
+    let toOption = asOption
 
     /// Unwraps the Loaded value, or returns the default value.
     let defaultValue defaultValue (remote: RemoteData<'T>) = remote.DefaultValue defaultValue
 
     /// Returns whether the `RemoteData<'T>` value has been loaded.
     let hasLoaded (remote: RemoteData<'T>) = remote.HasLoaded
+
+    /// Returns whether the `RemoteData<'T>` value has started loading or not.
+    let hasStarted (remote: RemoteData<'T>) = remote.HasStarted
 
     /// Returns whether the `RemoteData<'T>` value has started loading.
     let hasNotStarted (remote: RemoteData<'T>) = remote.HasNotStarted
