@@ -9,6 +9,12 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SAFE.Client", "src\SAFE.Cli
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SAFE.Server", "src\SAFE.Server\SAFE.Server.fsproj", "{0C8F62AC-D5D8-43E6-A4C7-159E530C3CE5}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Build", "Build\Build.fsproj", "{F49104E3-DBA9-4A2D-B839-B4E60BCAE698}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{387BFC82-96EA-4C10-A08E-C25588EE2223}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SAFE.Client.Tests", "test\SAFE.Client.Tests\SAFE.Client.Tests.fsproj", "{ECC5C643-1340-4718-8381-E3D1E835C3E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +32,14 @@ Global
 		{0C8F62AC-D5D8-43E6-A4C7-159E530C3CE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C8F62AC-D5D8-43E6-A4C7-159E530C3CE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C8F62AC-D5D8-43E6-A4C7-159E530C3CE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F49104E3-DBA9-4A2D-B839-B4E60BCAE698}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F49104E3-DBA9-4A2D-B839-B4E60BCAE698}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F49104E3-DBA9-4A2D-B839-B4E60BCAE698}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F49104E3-DBA9-4A2D-B839-B4E60BCAE698}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECC5C643-1340-4718-8381-E3D1E835C3E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECC5C643-1340-4718-8381-E3D1E835C3E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECC5C643-1340-4718-8381-E3D1E835C3E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECC5C643-1340-4718-8381-E3D1E835C3E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5BCFE180-027E-40F9-847B-7B36F10BD5D7} = {59161B7D-F517-4F4B-B28D-33E34B8A930E}
