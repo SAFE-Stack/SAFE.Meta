@@ -2,24 +2,27 @@ namespace SAFE
 
 open Fable.Remoting.Client
 open Fable.SimpleJson
-open System.ComponentModel
 
 /// Contains functionality to interact with Fable Remoting APIs.
 type Api =
-    /// <summary>Quickly creates a Fable Remoting API proxy.</summary>
+    /// <summary>Quickly creates a Fable Remoting API proxy. For more details, see https://zaid-ajaj.github.io/Fable.Remoting/.</summary>
     /// <param name="routeBuilder">An optional function which takes the name of the API and the method being called, and generates the route to the server API. Defaults to `/api/{api name}/{method name}` e.g. `/api/ITodoApi/GetTodos`.</param>
-    static member inline makeProxy<'TApi>(?routeBuilder) =
+    /// <param name="customOptions">An optional function which allows you to customize the API proxy such as Binary Serialization e.g. https://zaid-ajaj.github.io/Fable.Remoting/#/advanced/binary-serialization.</param>
+    static member inline makeProxy<'TApi>(?routeBuilder, ?customOptions) =
         let routeBuilder = defaultArg routeBuilder (sprintf "/api/%s/%s")
+        let customOptions = defaultArg customOptions id
 
         Remoting.createApi ()
         |> Remoting.withRouteBuilder routeBuilder
+        |> customOptions
         |> Remoting.buildProxy<'TApi>
 
 [<AutoOpen>]
 module Extensions =
     type System.Exception with
 
-        /// Deserializes a propagated exception raised by Fable Remoting.
+        /// If propagating exceptions with Fable Remoting, this helper method deserializes any `ProxyRequestException` into a record that contains the exception details.
+        /// See https://zaid-ajaj.github.io/Fable.Remoting/#/advanced/error-handling for more details.
         member this.GetPropagatedError() =
             match this with
             | :? ProxyRequestException as exn ->
@@ -37,8 +40,11 @@ module Extensions =
                 Message = ex.Message
               |}
 
-/// Used commonly to model asynchronous calls to the server (or any other external service) within an Elmish message instead of two separate messages e.g. LoadData and DataLoaded. `Start` represents the initial request (command); `Finished` contains the resultant data on the callback.
-/// See the AsyncOperation type in https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state for more details.
+/// Used commonly to model asynchronous calls to the server (or any other external service) within an Elmish message instead of two separate messages e.g. `LoadData` and `DataLoaded`. `Start` represents the initial request (command); `Finished` contains the resultant data on the callback.
+///
+/// For an example of how to use this type, see https://safe-stack.github.io/docs/recipes/client-server/mvu-roundtrip/.
+///
+/// For reference documentation, see the AsyncOperation type in https://zaid-ajaj.github.io/the-elmish-book/#/chapters/commands/async-state.
 type ApiCall<'TStart, 'TFinished> =
     /// Represents an API call that should be initiated.
     | Start of 'TStart

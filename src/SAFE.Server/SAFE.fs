@@ -34,7 +34,7 @@ module Extensions =
 
 [<RequireQualifiedAccess>]
 type Api =
-    /// <summary>Quickly creates a Fable Remoting API as an HTTP Handler for Giraffe.</summary>
+    /// <summary>Quickly creates a Fable Remoting API as an HTTP Handler for Giraffe. For reference documentation, see https://zaid-ajaj.github.io/Fable.Remoting/#/server-setup/saturn.</summary>
     /// <param name="api">The Fable Remoting API. It must take in an `HTTPContext` as the only argument.</param>
     /// <param name="routeBuilder">A function which takes the name of the API and the name of the method and returns the route to the server. Defaults to `/api/{api name}/{method name}` e.g. `/api/ITodoApi/GetTodos`.</param>
     /// <param name="errorHandler">A function which takes an `Exception` and a `RouteInfo` and returns a Giraffe Handler. Defaults to `Ignore` the exception i.e. it will not be cascaded.</param>
