@@ -25,12 +25,11 @@ module Processes =
 let sourceFolder = Path.getFullName """../src"""
 let outputFolder = Path.getFullName """../nugetPackages"""
 
-let clientTestFolder = """../test/Safe.Client.Tests"""
+let clientTestFolder = Path.getFullName """../test/Safe.Client.Tests"""
 
 let projects = [ "SAFE.Client"; "SAFE.Server" ]
 
 Target.create "Test" (fun _ ->
-        Npm.install (fun o -> {o with WorkingDirectory = clientTestFolder })
         Npm.run "test" (fun o -> {o with WorkingDirectory = clientTestFolder })
     )
 
