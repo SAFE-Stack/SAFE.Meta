@@ -1,0 +1,18 @@
+name: SAFE meta automated tests
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Tool Restore
+        run: dotnet tool restore
+
+      - name: Release
+        working-directory: ./Build
+        run: dotnet run --project Build.fsproj -- Test
