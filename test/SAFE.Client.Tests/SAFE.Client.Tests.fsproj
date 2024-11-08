@@ -7,10 +7,11 @@
   <ItemGroup>
     <Compile Include="Program.fs" />
     <Content Include="paket.references" />
+    <Content Include="package-lock.json" />
+    <Content Include="package.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SAFE.Client\SAFE.Client.fsproj" />
-    <ProjectReference Include="..\Shared\Shared.Tests.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

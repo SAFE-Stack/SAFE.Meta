@@ -1,0 +1,10 @@
+{
+"type" : "module",
+    "scripts": {
+        "pretest": "dotnet fable -o output",
+        "test": "mocha output"
+    },
+  "devDependencies": {
+    "mocha": "^10.8.2"
+  }
+}
