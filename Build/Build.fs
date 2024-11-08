@@ -25,7 +25,7 @@ module Processes =
 let sourceFolder = Path.getFullName """../src"""
 let outputFolder = Path.getFullName """../nugetPackages"""
 
-let clientTestFolder = Path.getFullName """../test/Safe.Client.Tests"""
+let clientTestFolder = """../test/Safe.Client.Tests"""
 
 let projects = [ "SAFE.Client"; "SAFE.Server" ]
 
