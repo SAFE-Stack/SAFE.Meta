@@ -13,6 +13,6 @@ jobs:
       - name: Tool Restore
         run: dotnet tool restore
 
-      - name: Release
+      - name: Test
         working-directory: ./Build
         run: dotnet run --project Build.fsproj -- Test
