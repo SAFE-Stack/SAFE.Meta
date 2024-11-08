@@ -55,6 +55,7 @@ let remoteData =
             | RemoteDataCase.LoadingEmpty -> false
             | RemoteDataCase.LoadingPopulated
             | RemoteDataCase.Loaded -> true)
+
         RemoteDataCase.testListForAll "HasLoaded" (_.HasLoaded) (function
             | RemoteDataCase.NotStarted
             | RemoteDataCase.LoadingEmpty
@@ -72,49 +73,56 @@ let remoteData =
             | RemoteDataCase.LoadingEmpty
             | RemoteDataCase.LoadingPopulated
             | RemoteDataCase.Loaded -> true)
+
         RemoteDataCase.testListForAll "hasData" (_.HasData) (function
             | RemoteDataCase.NotStarted
             | RemoteDataCase.LoadingEmpty -> false
             | RemoteDataCase.LoadingPopulated
             | RemoteDataCase.Loaded -> true)
+
         RemoteDataCase.testListForAll "isStillLoading" (_.IsStillLoading) (function
             | RemoteDataCase.NotStarted -> false
             | RemoteDataCase.LoadingEmpty
             | RemoteDataCase.LoadingPopulated -> true
             | RemoteDataCase.Loaded -> false)
+
         RemoteDataCase.testListForAll "isRefresing" (_.IsRefreshing) (function
             | RemoteDataCase.NotStarted -> false
             | RemoteDataCase.LoadingEmpty -> false
             | RemoteDataCase.LoadingPopulated -> true
             | RemoteDataCase.Loaded -> false)
+
         RemoteDataCase.testListForAll "hasNotStarted" (_.HasNotStarted) (function
             | RemoteDataCase.NotStarted -> true
             | RemoteDataCase.LoadingEmpty
             | RemoteDataCase.LoadingPopulated
             | RemoteDataCase.Loaded -> false)
-        RemoteDataCase.testListForAll "map" (_.Map(fun value -> not value)) (function
+
+        RemoteDataCase.testListForAll "map" (_.Map(not)) (function
             | RemoteDataCase.NotStarted -> NotStarted
             | RemoteDataCase.LoadingEmpty -> Loading None
             | RemoteDataCase.LoadingPopulated -> Loading(Some false)
-            | RemoteDataCase.Loaded -> Loaded(false))
+            | RemoteDataCase.Loaded -> Loaded false)
+
         testList "bind" [
-            RemoteDataCase.testListForAll "toLoaded" (_.Bind(fun value -> Loaded value)) (function
+            RemoteDataCase.testListForAll "toLoaded" (_.Bind(Loaded)) (function
                 | RemoteDataCase.NotStarted -> NotStarted
                 | RemoteDataCase.LoadingEmpty -> Loading None
                 | RemoteDataCase.LoadingPopulated
-                | RemoteDataCase.Loaded -> (Loaded true))
+                | RemoteDataCase.Loaded -> Loaded true)
+
             RemoteDataCase.testListForAll "toNotStarted" (_.Bind(fun _ -> NotStarted)) (function
                 | RemoteDataCase.NotStarted -> NotStarted
                 | RemoteDataCase.LoadingEmpty -> Loading None
                 | RemoteDataCase.LoadingPopulated
                 | RemoteDataCase.Loaded -> NotStarted)
         ]
+
         RemoteDataCase.testListForAll "startLoading" (_.StartLoading()) (function
             | RemoteDataCase.NotStarted -> Loading None
             | RemoteDataCase.LoadingEmpty -> Loading None
-            | RemoteDataCase.LoadingPopulated -> Loading(Some true)
-            | RemoteDataCase.Loaded -> Loading(Some true))
-
+            | RemoteDataCase.LoadingPopulated -> Loading (Some true)
+            | RemoteDataCase.Loaded -> Loading (Some true))
     ]
 
 [<EntryPoint>]
