@@ -108,7 +108,6 @@ let remoteData =
                 | RemoteDataCase.LoadingEmpty -> Loading None
                 | RemoteDataCase.LoadingPopulated
                 | RemoteDataCase.Loaded -> NotStarted)
-
         ]
         RemoteDataCase.testListForAll "startLoading" (_.StartLoading()) (function
             | RemoteDataCase.NotStarted -> Loading None
