@@ -186,3 +186,23 @@ module RemoteData =
     /// `NotStarted -> Loading None`;
     /// `Loading x -> Loading x`;
     let startLoading (remote: RemoteData<'T>) = remote.StartLoading
+
+///A type which represents optimistic updates. 
+type Optimistic<'a> = {
+    Prev: 'a option
+    Curr: 'a option
+}with
+
+    ///Assign the current value as the now previous value and the passed in value as the new current value
+    member this.Update value =
+        {
+            Curr = Some value
+            Prev = this.Curr
+        }
+
+    ///Rollback to the previous value in the case of a failure
+    member this.Rollback =
+        {
+            Curr = this.Prev
+            Prev = None
+        }
