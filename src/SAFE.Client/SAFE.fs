@@ -188,21 +188,23 @@ module RemoteData =
     let startLoading (remote: RemoteData<'T>) = remote.StartLoading
 
 ///A type which represents optimistic updates. 
-type Optimistic<'a> = {
-    Prev: 'a option
-    Curr: 'a option
+type Optimistic<'T> = {
+    /// The previous value, if any
+    Prev: 'T option
+    /// The current value, if any
+    Value: 'T option
 }with
 
-    ///Assign the current value as the now previous value and the passed in value as the new current value
+    /// Updates the current value, shifting the existing current value to previous.
     member this.Update value =
         {
-            Curr = Some value
-            Prev = this.Curr
+            Value = Some value
+            Prev = this.Value
         }
 
-    ///Rollback to the previous value in the case of a failure
-    member this.Rollback =
+    /// Rolls back to the previous value, discarding the current one.
+    member this.Rollback () =
         {
-            Curr = this.Prev
+            Value = this.Prev
             Prev = None
         }
