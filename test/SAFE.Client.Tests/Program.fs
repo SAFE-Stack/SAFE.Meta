@@ -124,65 +124,104 @@ let remoteData =
             | RemoteDataCase.LoadingPopulated -> Loading (Some true)
             | RemoteDataCase.Loaded -> Loading (Some true))
     ]
-
 let optimistic =
     testList "Optimistic" [
         testList "create" [
             testCase "creates new value with no history" <| fun _ ->
                 let opt = Optimistic.create 42
-                Expect.equal opt.Value (Some 42) "Current value should be set"
-                Expect.equal opt.Prev None "Previous value should be None"
+                match opt with
+                | Exists (value, prev) ->
+                    Expect.equal value 42 "Current value should be set"
+                    Expect.equal prev None "Previous value should be None"
+                | NonExistant -> 
+                    failtest "Should not be NonExistant"
         ]
         
         testList "empty" [
             testCase "creates empty optimistic value" <| fun _ ->
                 let opt = Optimistic.empty
-                Expect.equal opt.Value None "Current value should be None"
-                Expect.equal opt.Prev None "Previous value should be None"
+                Expect.equal opt NonExistant "Should be NonExistant"
+        ]
+        
+        testList "Value property" [
+            testCase "returns Some for existing value" <| fun _ ->
+                let opt = Optimistic.create 42
+                Expect.equal opt.Value (Some 42) "Should return Some with current value"
+            
+            testCase "returns None for NonExistant" <| fun _ ->
+                let opt = Optimistic.empty
+                Expect.equal opt.Value None "Should return None for NonExistant"
         ]
         
         testList "update" [
             testCase "updates value and shifts previous" <| fun _ ->
                 let opt = Optimistic.create 42
                 let updated = opt.Update 84
-                Expect.equal updated.Value (Some 84) "Current value should be updated"
-                Expect.equal updated.Prev (Some 42) "Previous value should be old current"
+                match updated with
+                | Exists (value, prev) ->
+                    Expect.equal value 84 "Current value should be updated"
+                    Expect.equal prev (Some 42) "Previous value should be old current"
+                | NonExistant ->
+                    failtest "Should not be NonExistant"
+            
+            testCase "update on NonExistant remains NonExistant" <| fun _ ->
+                let opt = Optimistic.empty
+                let updated = opt.Update 42
+                Expect.equal updated NonExistant "Should remain NonExistant"
         ]
         
         testList "rollback" [
             testCase "rolls back to previous value" <| fun _ ->
-                let opt = Optimistic.create 42 |> Optimistic.update 84
+                let opt = Optimistic.create 42 |> fun o -> o.Update 84
                 let rolled = opt.Rollback()
-                Expect.equal rolled.Value (Some 42) "Current value should be previous"
-                Expect.equal rolled.Prev None "Previous value should be cleared"
+                match rolled with
+                | Exists (value, prev) ->
+                    Expect.equal value 42 "Current value should be previous"
+                    Expect.equal prev None "Previous value should be None"
+                | NonExistant ->
+                    failtest "Should not be NonExistant"
+            
+            testCase "rollback on NonExistant remains NonExistant" <| fun _ ->
+                let opt = Optimistic.empty
+                let rolled = opt.Rollback()
+                Expect.equal rolled NonExistant "Should remain NonExistant"
         ]
         
         testList "map" [
-            testCase "maps both values" <| fun _ ->
-                let opt = { Value = Some 42; Prev = Some 21 }
+            testCase "maps both current and previous values" <| fun _ ->
+                let opt = Optimistic.create 42 |> fun o -> o.Update 84
                 let mapped = opt.Map string
-                Expect.equal mapped.Value (Some "42") "Current value should be mapped"
-                Expect.equal mapped.Prev (Some "21") "Previous value should be mapped"
+                match mapped with
+                | Exists (value, prev) ->
+                    Expect.equal value "84" "Current value should be mapped"
+                    Expect.equal prev (Some "42") "Previous value should be mapped"
+                | NonExistant ->
+                    failtest "Should not be NonExistant"
+            
+            testCase "map on NonExistant remains NonExistant" <| fun _ ->
+                let opt = Optimistic.empty
+                let mapped = opt.Map string
+                Expect.equal mapped NonExistant "Should remain NonExistant"
         ]
         
-        testList "bind" [
-            testCase "binds value with history" <| fun _ ->
-                let opt = { Value = Some 42; Prev = Some 21 }
-                let bound = opt.Bind (fun x -> { Value = Some (string x); Prev = None})
-                Expect.equal bound.Value (Some "42") "Current value should be bound"
-                Expect.equal bound.Prev (None) "Previous value should be bound"
-        ]
-        
-        testList "asOption" [
-            testCase "returns current value as option" <| fun _ ->
+        testList "module functions" [
+            testCase "update function matches member" <| fun _ ->
                 let opt = Optimistic.create 42
-                Expect.equal (Optimistic.asOption opt) (Some 42) "Should return current value"
-        ]
-        
-        testList "asPrevOption" [
-            testCase "returns previous value as option" <| fun _ ->
-                let opt = Optimistic.create 42 |> Optimistic.update 84
-                Expect.equal (Optimistic.asPrevOption opt) (Some 42) "Should return previous value"
+                let memberUpdate = opt.Update 84
+                let moduleUpdate = Optimistic.update 84 opt
+                Expect.equal moduleUpdate memberUpdate "Module update should match member update"
+            
+            testCase "rollback function matches member" <| fun _ ->
+                let opt = Optimistic.create 42 |> fun o -> o.Update 84
+                let memberRollback = opt.Rollback()
+                let moduleRollback = Optimistic.rollback opt
+                Expect.equal moduleRollback memberRollback "Module rollback should match member rollback"
+            
+            testCase "map function matches member" <| fun _ ->
+                let opt = Optimistic.create 42
+                let memberMap = opt.Map string
+                let moduleMap = Optimistic.map string opt
+                Expect.equal moduleMap memberMap "Module map should match member map"
         ]
     ]
 

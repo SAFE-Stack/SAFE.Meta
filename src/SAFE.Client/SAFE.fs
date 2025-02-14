@@ -188,50 +188,44 @@ module RemoteData =
     let startLoading (remote: RemoteData<'T>) = remote.StartLoading
 
 ///A type which represents optimistic updates. 
-type Optimistic<'T> = {
-    /// The previous value, if any
-    Prev: 'T option
-    /// The current value, if any
-    Value: 'T option
-}with
+type Optimistic<'T> =
+    | NonExistant
+    | Exists of value:'T * prev:'T option
+    with
+        /// Retrieves the current value
+        member this.Value =
+            match this with
+            | NonExistant -> None
+            | Exists (v, pv) -> Some v
 
-    /// Updates the current value, shifting the existing current value to previous.
-    member this.Update value =
-        {
-            Value = Some value
-            Prev = this.Value
-        }
+        /// Updates the current value, shifting the existing current value to previous.
+        member this.Update (value: 'T) =
+            match this with
+            | NonExistant -> NonExistant
+            | Exists (v, pv) -> Exists (value, Some v)
 
-    /// Rolls back to the previous value, discarding the current one.
-    member this.Rollback () =
-        {
-            Value = this.Prev
-            Prev = None
-        }
+        /// Rolls back to the previous value, discarding the current one.
+        member this.Rollback () =
+            match this with
+            | NonExistant -> NonExistant
+            | Exists (_, Some pv) -> Exists (pv , None)
+            | Exists (_, None) -> NonExistant
 
-    /// Maps the underlying optimistic value, when it exists, into another shape.
-    member this.Map (f: 'T -> 'U) =
-        {
-            Value = Option.map f this.Value
-            Prev = Option.map f this.Prev
-        }
-        
-    /// Binds both current and previous values using the provided function
-    member this.Bind (f: 'T -> Optimistic<'U>) =
-        match this.Value with
-        | Some v -> f v  // Just use the result directly
-        | None -> { Value = None; Prev = None }
-        
-    /// Returns the current value as an option
-    member this.AsOption = this.Value
+        /// Maps the underlying optimistic value, when it exists, into another shape.
+        member this.Map (f: 'T -> 'U) =
+            match this with
+            | NonExistant -> NonExistant
+            | Exists (v, pv) -> Exists (f v, pv |> Option.map f)        
 
 /// Module containing functions for working with Optimistic type
 module Optimistic =
     /// Creates a new Optimistic value with no history
-    let create value = { Value = Some value; Prev = None }
+    let create value =
+        Exists (value, None)
     
     /// Creates an empty Optimistic value
-    let empty = { Value = None; Prev = None }
+    let empty =
+        NonExistant
     
     /// Updates the current value, shifting existing value to previous
     let update value (optimistic: Optimistic<'T>) = optimistic.Update value
@@ -241,12 +235,3 @@ module Optimistic =
     
     /// Maps both current and previous values
     let map f (optimistic: Optimistic<'T>) = optimistic.Map f
-    
-    /// Binds both current and previous values
-    let bind f (optimistic: Optimistic<'T>) = optimistic.Bind f
-    
-    /// Returns the current value as an option
-    let asOption (optimistic: Optimistic<'T>) = optimistic.AsOption
-    
-    /// Returns the previous value as an option
-    let asPrevOption optimistic = optimistic.Prev
