@@ -125,5 +125,72 @@ let remoteData =
             | RemoteDataCase.Loaded -> Loading (Some true))
     ]
 
+let optimistic =
+    testList "Optimistic" [
+        testList "create" [
+            testCase "creates new value with no history" <| fun _ ->
+                let opt = Optimistic.create 42
+                Expect.equal opt.Value (Some 42) "Current value should be set"
+                Expect.equal opt.Prev None "Previous value should be None"
+        ]
+        
+        testList "empty" [
+            testCase "creates empty optimistic value" <| fun _ ->
+                let opt = Optimistic.empty
+                Expect.equal opt.Value None "Current value should be None"
+                Expect.equal opt.Prev None "Previous value should be None"
+        ]
+        
+        testList "update" [
+            testCase "updates value and shifts previous" <| fun _ ->
+                let opt = Optimistic.create 42
+                let updated = opt.Update 84
+                Expect.equal updated.Value (Some 84) "Current value should be updated"
+                Expect.equal updated.Prev (Some 42) "Previous value should be old current"
+        ]
+        
+        testList "rollback" [
+            testCase "rolls back to previous value" <| fun _ ->
+                let opt = Optimistic.create 42 |> Optimistic.update 84
+                let rolled = opt.Rollback()
+                Expect.equal rolled.Value (Some 42) "Current value should be previous"
+                Expect.equal rolled.Prev None "Previous value should be cleared"
+        ]
+        
+        testList "map" [
+            testCase "maps both values" <| fun _ ->
+                let opt = { Value = Some 42; Prev = Some 21 }
+                let mapped = opt.Map string
+                Expect.equal mapped.Value (Some "42") "Current value should be mapped"
+                Expect.equal mapped.Prev (Some "21") "Previous value should be mapped"
+        ]
+        
+        testList "bind" [
+            testCase "binds value with history" <| fun _ ->
+                let opt = { Value = Some 42; Prev = Some 21 }
+                let bound = opt.Bind (fun x -> { Value = Some (string x); Prev = None})
+                Expect.equal bound.Value (Some "42") "Current value should be bound"
+                Expect.equal bound.Prev (None) "Previous value should be bound"
+        ]
+        
+        testList "asOption" [
+            testCase "returns current value as option" <| fun _ ->
+                let opt = Optimistic.create 42
+                Expect.equal (Optimistic.asOption opt) (Some 42) "Should return current value"
+        ]
+        
+        testList "asPrevOption" [
+            testCase "returns previous value as option" <| fun _ ->
+                let opt = Optimistic.create 42 |> Optimistic.update 84
+                Expect.equal (Optimistic.asPrevOption opt) (Some 42) "Should return previous value"
+        ]
+    ]
+
+let allTests = 
+    testList "All Tests" [
+        remoteData
+        optimistic
+    ]
+
 [<EntryPoint>]
-let main _ = Mocha.runTests remoteData
+let main _ = Mocha.runTests allTests
