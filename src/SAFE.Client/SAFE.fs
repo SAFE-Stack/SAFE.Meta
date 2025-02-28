@@ -189,7 +189,7 @@ module RemoteData =
 
 ///A type which represents optimistic updates. 
 type Optimistic<'T> =
-    | NonExistant
+    | NonExistent
     | Exists of value:'T * prev:'T option
     with
         /// Retrieves the current value
