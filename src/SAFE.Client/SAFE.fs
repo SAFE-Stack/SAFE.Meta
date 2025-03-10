@@ -186,3 +186,52 @@ module RemoteData =
     /// `NotStarted -> Loading None`;
     /// `Loading x -> Loading x`;
     let startLoading (remote: RemoteData<'T>) = remote.StartLoading
+
+///A type which represents optimistic updates. 
+type Optimistic<'T> =
+    | NonExistent
+    | Exists of value:'T * prev:'T option
+    with
+        /// Retrieves the current value
+        member this.Value =
+            match this with
+            | NonExistant -> None
+            | Exists (v, pv) -> Some v
+
+        /// Updates the current value, shifting the existing current value to previous.
+        member this.Update (value: 'T) =
+            match this with
+            | NonExistant -> NonExistant
+            | Exists (v, pv) -> Exists (value, Some v)
+
+        /// Rolls back to the previous value, discarding the current one.
+        member this.Rollback () =
+            match this with
+            | NonExistant -> NonExistant
+            | Exists (_, Some pv) -> Exists (pv , None)
+            | Exists (_, None) -> NonExistant
+
+        /// Maps the underlying optimistic value, when it exists, into another shape.
+        member this.Map (f: 'T -> 'U) =
+            match this with
+            | NonExistant -> NonExistant
+            | Exists (v, pv) -> Exists (f v, pv |> Option.map f)        
+
+/// Module containing functions for working with Optimistic type
+module Optimistic =
+    /// Creates a new Optimistic value with no history
+    let create value =
+        Exists (value, None)
+    
+    /// Creates an empty Optimistic value
+    let empty =
+        NonExistant
+    
+    /// Updates the current value, shifting existing value to previous
+    let update value (optimistic: Optimistic<'T>) = optimistic.Update value
+    
+    /// Rolls back to the previous value
+    let rollback (optimistic: Optimistic<'T>) = optimistic.Rollback()
+    
+    /// Maps both current and previous values
+    let map f (optimistic: Optimistic<'T>) = optimistic.Map f
