@@ -7,8 +7,8 @@ nuget Fake.JavaScript.Npm
 nuget FSharp.Core ~> 8
 
 nuget Fable.Remoting.Giraffe ~> 5
-nuget SAFE.Client.Utils
-nuget SAFE.Server.Utils
+nuget SAFE.Client.Utils ~> 5
+nuget SAFE.Server.Utils ~> 5
 nuget Saturn ~> 0
 
 nuget Fable.Core ~> 4
