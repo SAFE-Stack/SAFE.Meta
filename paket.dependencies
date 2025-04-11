@@ -15,6 +15,7 @@ nuget Fable.Core ~> 4
 nuget Fable.Elmish ~> 4
 nuget Fable.Elmish.React ~> 4
 nuget Fable.Elmish.HMR ~> 7
+nuget Fable.Mocha ~> 2
 nuget Fable.Remoting.Client ~> 7
 nuget Fable.SimpleJson
 nuget Feliz ~> 2

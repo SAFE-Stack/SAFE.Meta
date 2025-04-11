@@ -3,6 +3,7 @@ Fable.Core
 Fable.Elmish
 Fable.Elmish.React
 Fable.Elmish.HMR
+Fable.Mocha
 Fable.Remoting.Client
 Feliz
 Fable.SimpleJson
