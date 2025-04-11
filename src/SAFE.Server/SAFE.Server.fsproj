@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <RootNamespace>SAFE</RootNamespace>
@@ -26,8 +27,5 @@
         <None Include="../../safe-logo.png" Pack="true" PackagePath="" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Compile Include="SAFE.fs" />
-    </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

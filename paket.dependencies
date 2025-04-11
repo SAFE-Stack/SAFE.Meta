@@ -7,13 +7,14 @@ nuget Fake.JavaScript.Npm
 nuget FSharp.Core ~> 8
 
 nuget Fable.Remoting.Giraffe ~> 5
+nuget SAFE.Client.Utils
+nuget SAFE.Server.Utils
 nuget Saturn ~> 0
 
 nuget Fable.Core ~> 4
 nuget Fable.Elmish ~> 4
 nuget Fable.Elmish.React ~> 4
 nuget Fable.Elmish.HMR ~> 7
-nuget Fable.Mocha ~> 2
 nuget Fable.Remoting.Client ~> 7
 nuget Fable.SimpleJson
 nuget Feliz ~> 2
