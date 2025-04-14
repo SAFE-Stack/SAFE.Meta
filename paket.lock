@@ -163,7 +163,7 @@ NUGET
       Microsoft.IdentityModel.Logging (>= 7.7.1)
     Microsoft.IO.RecyclableMemoryStream (3.0.1)
     Newtonsoft.Json (13.0.3)
-    SAFE.Client.Utils (5.0)
+    SAFE.Client.Utils (5.0.1)
       Fable.Browser.Dom (>= 2.18.1)
       Fable.Remoting.Client (>= 7.32)
       Fable.SimpleJson (>= 3.24)
