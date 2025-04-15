@@ -28,7 +28,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="SAFE.fs" />
         <Content Include="*.fsproj; **\*.fs; **\*.fsi" PackagePath="fable\" />
     </ItemGroup>
 
