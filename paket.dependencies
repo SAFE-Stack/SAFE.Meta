@@ -4,6 +4,7 @@ storage: none
 
 nuget Fake.Core.Target
 nuget Fake.JavaScript.Npm
+nuget Feliz.DaisyUI ~> 5
 nuget FSharp.Core ~> 8
 
 nuget Fable.Remoting.Giraffe ~> 5
